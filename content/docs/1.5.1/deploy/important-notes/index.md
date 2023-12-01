@@ -12,6 +12,10 @@ Please see [here](https://github.com/longhorn/longhorn/releases/tag/v{{< current
 
 Please ensure your Kubernetes cluster is at least v1.21 before upgrading to Longhorn v{{< current-version >}} because this is the minimum version Longhorn v{{< current-version >}} supports.
 
+### Detach All V1 and V2 Volumes When v2-data-engine is Enabled Before Upgrade
+
+Longhorn does not support upgrading with v1 or v2 volumes attached when the V2 Data Engine is enabled. Detach all volumes before upgrading.
+
 ### Attachment/Detachment Refactoring Side Effect On The Upgrade Process
 
 In Longhorn v1.5.0, we refactored the internal volume attach/detach mechanism.
@@ -86,7 +90,7 @@ Please use the new setting [Node Drain Policy](../../references/settings#node-dr
 
 ### Instance Managers Consolidated
 
-Engine instance mangers and replica instance managers has been consolidated. Previous engine/replica instance managers are now deprecated, but they will still provide service to the existing attached volumes.
+Engine instance managers and replica instance managers has been consolidated. Previous engine/replica instance managers are now deprecated, but they will still provide service to the existing attached volumes.
 
 The `Guaranteed Engine Manager CPU` and `Guaranteed Replica Manager CPU` settings are removed and replaced by `Guaranteed Instance Manager CPU`.
 

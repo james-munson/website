@@ -56,6 +56,10 @@ During the upgrade, Longhorn will automatically:
 
 Visit [Recurring Snapshots and Backups](../../snapshots-and-backups/scheduling-backups-and-snapshots) for more information about the new `Recurring Job` feature.
 
+## 5. Detach All V1 and V2 Volumes When v2-data-engine is Enabled Before Upgrade
+
+Longhorn does not support upgrading with v1 or v2 volumes attached when the V2 Data Engine is enabled. Detach all volumes before upgrading.
+
 # Extended Reading
 
 Visit [Some old instance manager pods are still running after upgrade](https://longhorn.io/kb/troubleshooting-some-old-instance-manager-pods-are-still-running-after-upgrade) for more information about the cleanup strategy of instance manager pods during upgrade.

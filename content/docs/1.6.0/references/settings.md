@@ -6,7 +6,8 @@ weight: 1
 - [Customizing Default Settings](#customizing-default-settings)
 - [General](#general)
   - [Node Drain Policy](#node-drain-policy)
-  - [Automatically Cleanup System Generated Snapshot](#automatically-cleanup-system-generated-snapshot)
+  - [Automatically Clean up System Generated Snapshot](#automatically-clean-up-system-generated-snapshot)
+  - [Automatically Clean up Outdated Snapshots of Recurring Backup Jobs](#automatically-clean-up-outdated-snapshots-of-recurring-backup-jobs)
   - [Automatically Delete Workload Pod when The Volume Is Detached Unexpectedly](#automatically-delete-workload-pod-when-the-volume-is-detached-unexpectedly)
   - [Automatic Salvage](#automatic-salvage)
   - [Concurrent Automatic Engine Upgrade Per Node Limit](#concurrent-automatic-engine-upgrade-per-node-limit)
@@ -95,11 +96,19 @@ Define the policy to use when a node with the last healthy replica of a volume i
 - `always-allow`: Longhorn will allow the drain even though the node contains the last healthy replica of a volume.
   WARNING: possible data loss if the node is removed after draining. Also possible data corruption if the last replica was running during the draining.
 
-#### Automatically Cleanup System Generated Snapshot
+#### Automatically Clean up System Generated Snapshot
 
 > Default: `true`
 
 Longhorn will generate system snapshot during replica rebuild, and if a user doesn't setup a recurring snapshot schedule, all the system generated snapshots would be left in the replica, and user has to delete them manually, this setting allow Longhorn to automatically cleanup system generated snapshot before and after replica rebuild.
+
+#### Automatically Clean up Outdated Snapshots of Recurring Backup Jobs
+
+> Default: `true`
+
+If enabled, when running a recurring backup job, Longhorn takes a new snapshot before creating the backup. Longhorn retains only the snapshot used by the last backup job even if the value of the retain parameter is not 1.
+
+If disabled, this setting ensures that the retained snapshots directly correspond to the backups on the remote backup target.
 
 #### Automatically Delete Workload Pod when The Volume Is Detached Unexpectedly
 
@@ -265,7 +274,8 @@ This information will help us gain insights how Longhorn is being used, which wi
   - Included as it is:
     - Allow Recurring Job While Volume Is Detached
     - Allow Volume Creation With Degraded Availability
-    - Automatically Cleanup System Generated Snapshot
+    - Automatically Clean up System Generated Snapshot
+    - Automatically Clean up Outdated Snapshots of Recurring Backup Jobs
     - Automatically Delete Workload Pod when The Volume Is Detached Unexpectedly
     - Automatic Salvage
     - Backing Image Cleanup Wait Interval
@@ -471,9 +481,12 @@ If this setting is enabled, Longhorn automatically attaches the volume and takes
 
 #### Backup Target
 
-> Example: `s3://backupbucket@us-east-1/backupstore`
+> Examples:  
+> `s3://backupbucket@us-east-1/backupstore`  
+> `nfs://longhorn-test-nfs-svc.default:/opt/backupstore`  
+> `nfs://longhorn-test-nfs-svc.default:/opt/backupstore?nfsOptions=soft,timeo=330,retrans=3`  
 
-The target used for backup. NFS and S3 are supported. See [Setting a Backup Target](../../snapshots-and-backups/backup-and-restore/set-backup-target) for details.
+Endpoint used to access a backupstore.   Longhorn supports AWS S3, Azure, GCP, CIFS and NFS.  See [Setting a Backup Target](../../snapshots-and-backups/backup-and-restore/set-backup-target) for details.
 
 #### Backup Target Credential Secret
 

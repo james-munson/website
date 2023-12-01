@@ -5,6 +5,8 @@ weight: 1
 
 A backup target is an endpoint used to access a backup store in Longhorn. A backup store is an NFS server, SMB/CIFS server, Azure Blob Storage server, or S3 compatible server that stores the backups of Longhorn volumes. The backup target can be set at `Settings/General/BackupTarget`.
 
+Saving to an object store such as S3 is preferable because it generally offers better reliability.  Another advantage is that you do not need to mount and unmount the target, which can complicate failover and upgrades.
+
 For more information about how the backupstore works in Longhorn, see the [concepts section.](../../../concepts/#3-backups-and-secondary-storage)
 
 If you don't have access to AWS S3 or want to give the backupstore a try first, we've also provided a way to [setup a local S3 testing backupstore](#set-up-a-local-testing-backupstore) using [MinIO](https://minio.io/).
@@ -224,9 +226,9 @@ Once the secret is created and Longhorn's settings are saved, navigate to the ba
 If you don't get any error messages, try creating a backup and confirm the content is pushed out to your new bucket.
 
 ### Set up a Local Testing Backupstore
-We provides two testing purpose backupstore based on NFS server and MinIO S3 server for testing, in `./deploy/backupstores`.
+Longhorn provides sample backupstore server setups for testing purposes.  You can find samples for AWS S3 (MinIO), Azure, CIFS and NFS in the `longhorn/deploy/backupstores` folder.
 
-1. Use following command to setup a MinIO S3 server for the backupstore after `longhorn-system` was created.
+1. Set up a MinIO S3 server for the backupstore in the `longhorn-system` namespace.
 
     ```
     kubectl create -f https://raw.githubusercontent.com/longhorn/longhorn/v{{< current-version >}}/deploy/backupstores/minio-backupstore.yaml
@@ -244,7 +246,7 @@ We provides two testing purpose backupstore based on NFS server and MinIO S3 ser
 
    The `minio-secret` yaml looks like this:
 
-    ```
+    ```yaml
     apiVersion: v1
     kind: Secret
     metadata:
@@ -279,7 +281,7 @@ To include multiple certificates, one can just concatenate the different certifi
 
 **The way to enable virtual-hosted-style access**
 1. Add a new field `VIRTUAL_HOSTED_STYLE` with value `true` to your backup target secret. e.g.:
-    ```
+    ```yaml
     apiVersion: v1
     kind: Secret
     metadata:
@@ -296,13 +298,22 @@ To include multiple certificates, one can just concatenate the different certifi
 
 ### Set up NFS Backupstore
 
-For using NFS server as backupstore, NFS server must support NFSv4.
+Ensure that the NFS server supports NFSv4 and that the target URL points to the service.
 
-The target URL should look like this:
+Example:
 
 ```
 nfs://longhorn-test-nfs-svc.default:/opt/backupstore
 ```
+
+The default mount options are `actimeo=1,soft,timeo=300,retry=2`.  To use other options, append the keyword "nfsOptions" and the options string to the target URL.  
+
+Example:  
+```
+nfs://longhorn-test-nfs-svc.default:/opt/backupstore?nfsOptions=soft,timeo=330,retrans=3  
+```
+
+Any mount options that you specify will replace, not add to, the default options.
 
 You can find an example NFS backupstore for testing purpose [here](https://github.com/longhorn/longhorn/blob/v{{< current-version >}}/deploy/backupstores/nfs-backupstore.yaml).
 
@@ -311,7 +322,7 @@ You can find an example NFS backupstore for testing purpose [here](https://githu
 ### Set up SMB/CIFS Backupstore
 
 Before configuring a SMB/CIFS backupstore, a credential secret for the backupstore can be created and deployed by
-  ```
+  ```shell
   #!/bin/bash
 
   USERNAME=${Username of SMB/CIFS Server}
@@ -342,6 +353,16 @@ Then, navigate to Longhorn UI > Setting > General > Backup
     ```
     cifs://longhorn-test-cifs-svc.default/backupstore
     ```
+
+	The default CIFS mount option is "soft".  To use other options, append the keyword "cifsOptions" and the options string to the target URL.  
+	
+	Example:
+    ```
+    cifs://longhorn-test-cifs-svc.default/backupstore?cifsOptions=rsize=65536,wsize=65536,soft
+    ```
+
+	Any mount options that you specify will replace, not add to, the default options.
+
 
 2. Set **Backup Target Credential Secret**
 
